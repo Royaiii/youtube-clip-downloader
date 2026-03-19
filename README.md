@@ -11,18 +11,16 @@ YouTube 영상에서 원하는 구간만 잘라서 다운로드하는 GUI 프로
 - **드래그 슬라이더**로 시작/종료 구간 선택
 - 실시간 다운로드 진행률 표시
 - 소리 제거 옵션
-- 정확한 자르기 옵션 (프레임 단위)
 - 중복 파일 덮어쓰기 확인
 - 저장 경로 자유 지정
 - 다크 테마 UI
 
 ## 빠른 시작 (Windows)
 
-1. [Python 3.10+](https://www.python.org/downloads/) 설치
-2. 이 레포를 다운로드하거나 clone
-3. `install_and_run.bat` 더블클릭
+1. 이 레포를 다운로드하거나 clone
+2. `install_and_run.bat` 더블클릭
 
-> 첫 실행 시 자동으로 필요한 패키지(PySide6, yt-dlp, ffmpeg)를 설치합니다.
+> Python, PySide6, yt-dlp, ffmpeg이 없으면 **자동으로 설치**됩니다.
 
 ## 수동 설치
 
@@ -52,16 +50,18 @@ python main.py
 
 | 옵션 | 설명 |
 |------|------|
-| 정확한 자르기 | 프레임 단위 정확하지만 느림 (재인코딩) |
 | 소리 제거 | 오디오 트랙 제거 |
 
 ## 의존성
 
-| 패키지 | 용도 |
-|--------|------|
-| [PySide6](https://pypi.org/project/PySide6/) | GUI |
-| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | YouTube 다운로드 엔진 |
-| [ffmpeg](https://ffmpeg.org/) | 영상 구간 자르기 |
+`install_and_run.bat`이 전부 자동 설치합니다.
+
+| 패키지 | 용도 | 자동 설치 |
+|--------|------|----------|
+| [Python 3.10+](https://www.python.org/) | 런타임 | winget |
+| [PySide6](https://pypi.org/project/PySide6/) | GUI | pip |
+| [yt-dlp](https://github.com/yt-dlp/yt-dlp) | YouTube 다운로드 | pip |
+| [ffmpeg](https://ffmpeg.org/) | 영상 자르기 | winget |
 
 ## 라이선스
 
