@@ -47,3 +47,8 @@ if errorlevel 1 (
 echo [4/4] 실행 중...
 echo.
 python "%~dp0main.py"
+if errorlevel 1 (
+    echo.
+    echo [ERROR] 실행 중 오류가 발생했습니다.
+    pause
+)
