@@ -152,8 +152,8 @@ def make_section(title):
     frame = QFrame()
     frame.setStyleSheet("QFrame { background: #1c1c1c; border: 1px solid #2a2a2a; border-radius: 6px; }")
     layout = QVBoxLayout(frame)
-    layout.setContentsMargins(16, 12, 16, 12)
-    layout.setSpacing(10)
+    layout.setContentsMargins(16, 14, 16, 14)
+    layout.setSpacing(12)
     if title:
         lbl = QLabel(title)
         lbl.setStyleSheet("color: #888; font-size: 11px; font-weight: bold; border: none; background: transparent;")
@@ -167,7 +167,7 @@ class App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("YouTube Clip Downloader")
-        self.setFixedSize(700, 580)
+        self.setFixedSize(720, 700)
         self.setStyleSheet("QMainWindow { background: #141414; }")
 
         self.sig = Sig()
