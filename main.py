@@ -182,10 +182,10 @@ class App(QMainWindow):
         self._deps()
 
     # --- common styles ---
-    _input = "background:#1e1e1e; color:#ddd; border:1px solid #333; border-radius:4px; padding:6px 10px; font-size:13px;"
+    _input = "background:#1e1e1e; color:#ddd; border:1px solid #333; border-radius:4px; padding:6px 10px; font-size:13px; min-height:18px;"
     _input_focus = "border-color:#4285f4;"
-    _btn_primary = "background:#4285f4; color:white; border:none; border-radius:4px; padding:7px 16px; font-size:13px; font-weight:bold;"
-    _btn_flat = "background:#252525; color:#aaa; border:none; border-radius:4px; padding:7px 16px; font-size:13px;"
+    _btn_primary = "background:#4285f4; color:white; border:none; border-radius:4px; padding:7px 16px; font-size:13px; font-weight:bold; min-height:18px;"
+    _btn_flat = "background:#252525; color:#aaa; border:none; border-radius:4px; padding:7px 16px; font-size:13px; min-height:18px;"
     _label = "color:#999; font-size:13px; background:transparent; border:none;"
     _label_accent = "color:#4285f4; font-size:13px; font-weight:bold; background:transparent; border:none;"
     _label_dim = "color:#555; font-size:12px; background:transparent; border:none;"
