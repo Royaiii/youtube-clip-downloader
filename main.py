@@ -8,7 +8,7 @@ import subprocess, sys, os, re, shutil, threading, time, json, glob
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QGridLayout,
     QLabel, QLineEdit, QPushButton, QFileDialog, QTextEdit,
-    QProgressBar, QCheckBox, QGroupBox, QSizePolicy, QMessageBox,
+    QProgressBar, QCheckBox, QGroupBox, QSizePolicy, QMessageBox, QSpacerItem,
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QObject, QTimer
 from PyQt6.QtGui import QFont, QColor, QPainter, QBrush, QPen
@@ -59,6 +59,29 @@ def parse_time(text):
 def _nw():
     return subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0
 
+def build_ui_font():
+    app = QApplication.instance()
+    font = QFont(app.font()) if app else QFont()
+    font.setPointSize(10)
+    families = ["Malgun Gothic", "맑은 고딕", "Apple SD Gothic Neo",
+                "Noto Sans CJK KR", "Noto Sans KR", "NanumGothic",
+                "Arial Unicode MS", "Sans Serif"]
+    default_family = font.family()
+    if default_family and default_family not in families:
+        families.append(default_family)
+    font.setFamilies(families)
+    return font
+
+
+# ─── Design Constants ───
+PAD = 16          # section inner padding
+GAP_S = 8         # small gap
+GAP_M = 12        # medium gap
+GAP_L = 16        # large gap
+INPUT_H = 36      # unified input/button height
+LABEL_W = 52      # label column width
+TIME_W = 88       # time input width
+
 
 # ─── Signals ───
 
@@ -80,7 +103,7 @@ class RangeSlider(QWidget):
         self._lo = self._mn = 0
         self._hi = self._mx = 100
         self._drag = None
-        self.setFixedHeight(30)
+        self.setFixedHeight(32)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setMouseTracking(True)
 
@@ -110,14 +133,14 @@ class RangeSlider(QWidget):
 
     def paintEvent(self, _):
         p = QPainter(self); p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        m = 16; cy = self.height() // 2; th = 6
+        m = 16; cy = self.height() // 2; th = 4
         w = self.width() - 2*m
         p.setPen(Qt.PenStyle.NoPen)
-        p.setBrush(QBrush(QColor(45, 45, 45)))
-        p.drawRoundedRect(m, cy - th//2, w, th, 3, 3)
+        p.setBrush(QBrush(QColor(40, 40, 40)))
+        p.drawRoundedRect(m, cy-th//2, w, th, 2, 2)
         xl, xh = self._v2x(self._lo), self._v2x(self._hi)
         p.setBrush(QBrush(QColor(66, 133, 244)))
-        p.drawRoundedRect(xl, cy - th//2, max(1, xh-xl), th, 3, 3)
+        p.drawRoundedRect(xl, cy-th//2, max(1, xh-xl), th, 2, 2)
         for x, c in [(xl, QColor(66,133,244)), (xh, QColor(234,67,53))]:
             p.setBrush(QBrush(c)); p.setPen(QPen(QColor(255,255,255), 2))
             p.drawEllipse(x-7, cy-7, 14, 14)
@@ -125,9 +148,7 @@ class RangeSlider(QWidget):
 
     def mousePressEvent(self, e):
         x = e.position().x()
-        dl = abs(x - self._v2x(self._lo))
-        dh = abs(x - self._v2x(self._hi))
-        self._drag = "lo" if dl <= dh else "hi"
+        self._drag = "lo" if abs(x-self._v2x(self._lo)) <= abs(x-self._v2x(self._hi)) else "hi"
         self._move(x)
 
     def mouseMoveEvent(self, e):
@@ -140,42 +161,52 @@ class RangeSlider(QWidget):
         self.setLow(v) if self._drag == "lo" else self.setHigh(v)
 
 
-# ─── Style ───
+# ─── Stylesheet ───
 
-STYLE = """
-QMainWindow { background: #181818; }
-QGroupBox {
-    color: #ccc; border: 1px solid #2e2e2e; border-radius: 8px;
-    margin-top: 14px; padding: 18px 14px 12px; font-size: 13px; font-weight: bold;
-}
-QGroupBox::title { subcontrol-origin: margin; left: 14px; padding: 0 8px; }
-QLabel { color: #aaa; }
-QLabel#info { color: #666; font-size: 12px; }
-QLabel#dur { color: #4285f4; font-weight: bold; }
-QLineEdit {
-    background: #222; color: #ddd; border: 1px solid #353535;
-    border-radius: 5px; padding: 7px 10px; font-size: 13px;
-}
-QLineEdit:focus { border-color: #4285f4; }
-QPushButton {
-    background: #4285f4; color: #fff; border: none; border-radius: 5px;
-    padding: 8px 20px; font-size: 13px; font-weight: bold; min-width: 80px;
-}
-QPushButton:hover { background: #5a9bf4; }
-QPushButton:pressed { background: #3367d6; }
-QPushButton:disabled { background: #2a2a2a; color: #555; }
-QPushButton[flat="true"] { background: #282828; color: #aaa; }
-QPushButton[flat="true"]:hover { background: #363636; }
-QTextEdit {
-    background: #111; color: #777; border: 1px solid #222; border-radius: 5px;
-    font-family: 'Cascadia Code', Consolas, monospace; font-size: 11px; padding: 6px;
-}
-QProgressBar {
-    background: #222; border: 1px solid #2e2e2e; border-radius: 5px;
-    text-align: center; color: #bbb; font-size: 11px; min-height: 22px;
-}
-QProgressBar::chunk { background: #4285f4; border-radius: 4px; }
-QCheckBox { color: #aaa; font-size: 12px; }
+STYLE = f"""
+QMainWindow {{ background: #161616; }}
+QGroupBox {{
+    color: #ccc; border: 1px solid #282828; border-radius: 8px;
+    margin-top: {GAP_M}px; padding: {PAD}px;
+    font-size: 13px; font-weight: bold;
+}}
+QGroupBox::title {{
+    subcontrol-origin: margin; left: {PAD}px; padding: 0 8px;
+}}
+QLabel {{ color: #999; font-size: 13px; }}
+QLabel#info {{ color: #555; font-size: 12px; }}
+QLabel#dur {{ color: #4285f4; font-weight: bold; font-size: 13px; }}
+QLineEdit {{
+    background: #1e1e1e; color: #ddd; border: 1px solid #303030;
+    border-radius: 4px; padding: 0 10px; font-size: 13px;
+    min-height: {INPUT_H}px; max-height: {INPUT_H}px;
+}}
+QLineEdit:focus {{ border-color: #4285f4; }}
+QPushButton {{
+    background: #4285f4; color: #fff; border: none; border-radius: 4px;
+    font-size: 13px; font-weight: bold;
+    min-height: {INPUT_H}px; max-height: {INPUT_H}px;
+    padding: 0 20px;
+}}
+QPushButton:hover {{ background: #5a9bf4; }}
+QPushButton:pressed {{ background: #3367d6; }}
+QPushButton:disabled {{ background: #252525; color: #444; }}
+QPushButton[flat="true"] {{
+    background: #222; color: #999;
+}}
+QPushButton[flat="true"]:hover {{ background: #2e2e2e; }}
+QTextEdit {{
+    background: #111; color: #666; border: 1px solid #1e1e1e; border-radius: 4px;
+    font-family: 'Cascadia Code', Consolas, monospace; font-size: 11px;
+    padding: 8px;
+}}
+QProgressBar {{
+    background: #1e1e1e; border: 1px solid #282828; border-radius: 4px;
+    text-align: center; color: #aaa; font-size: 11px;
+    min-height: 24px; max-height: 24px;
+}}
+QProgressBar::chunk {{ background: #4285f4; border-radius: 3px; }}
+QCheckBox {{ color: #999; font-size: 12px; }}
 """
 
 
@@ -185,7 +216,7 @@ class App(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("YouTube Clip Downloader")
-        self.setFixedSize(740, 620)
+        self.setFixedSize(740, 600)
         self.setStyleSheet(STYLE)
 
         self.sig = Sig()
@@ -205,29 +236,32 @@ class App(QMainWindow):
     def _build(self):
         w = QWidget(); self.setCentralWidget(w)
         root = QVBoxLayout(w)
-        root.setSpacing(8)
-        root.setContentsMargins(20, 16, 20, 16)
+        root.setSpacing(GAP_S)
+        root.setContentsMargins(GAP_L, GAP_L, GAP_L, GAP_L)
 
-        # URL
+        # ── 1. YouTube URL ──
         g1 = QGroupBox("YouTube URL")
         h1 = QHBoxLayout(g1)
-        h1.setContentsMargins(10, 8, 10, 8)
+        h1.setContentsMargins(PAD, GAP_M, PAD, GAP_M)
+        h1.setSpacing(GAP_S)
         self.url = QLineEdit()
         self.url.setPlaceholderText("https://youtu.be/... 또는 https://www.youtube.com/watch?v=...")
         self.fbtn = QPushButton("불러오기")
-        self.fbtn.setFixedWidth(90)
+        self.fbtn.setFixedWidth(100)
         self.fbtn.clicked.connect(self._fetch)
         h1.addWidget(self.url, 1)
         h1.addWidget(self.fbtn)
         root.addWidget(g1)
 
-        # Range
+        # ── 2. 구간 선택 ──
         g2 = QGroupBox("구간 선택")
         v2 = QVBoxLayout(g2)
-        v2.setContentsMargins(12, 10, 12, 10)
-        v2.setSpacing(10)
+        v2.setContentsMargins(PAD, GAP_M, PAD, GAP_M)
+        v2.setSpacing(GAP_M)
+
         self.vinfo = QLabel("URL을 입력하고 '불러오기'를 클릭하세요")
         self.vinfo.setObjectName("info")
+        self.vinfo.setWordWrap(True)
         v2.addWidget(self.vinfo)
 
         self.slider = RangeSlider()
@@ -235,84 +269,111 @@ class App(QMainWindow):
         self.slider.changed.connect(self._on_range)
         v2.addWidget(self.slider)
 
+        # time row
         tr = QHBoxLayout()
-        tr.setSpacing(10)
-        lbl_s = QLabel("시작:"); lbl_s.setFixedWidth(36)
-        tr.addWidget(lbl_s)
-        self.ts = QLineEdit("0:00"); self.ts.setFixedWidth(75)
+        tr.setSpacing(GAP_S)
+        tr.addWidget(self._lbl("시작"))
+        self.ts = QLineEdit("0:00")
+        self.ts.setFixedWidth(TIME_W)
+        self.ts.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.ts.setMaxLength(8)
         self.ts.editingFinished.connect(lambda: self._sync("s"))
         tr.addWidget(self.ts)
-        tr.addSpacing(12)
-        lbl_e = QLabel("종료:"); lbl_e.setFixedWidth(36)
-        tr.addWidget(lbl_e)
-        self.te = QLineEdit("0:00"); self.te.setFixedWidth(75)
+        tr.addSpacing(GAP_L)
+        tr.addWidget(self._lbl("종료"))
+        self.te = QLineEdit("0:00")
+        self.te.setFixedWidth(TIME_W)
+        self.te.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.te.setMaxLength(8)
         self.te.editingFinished.connect(lambda: self._sync("e"))
         tr.addWidget(self.te)
-        tr.addSpacing(20)
-        self.dlbl = QLabel("클립 길이: 0초"); self.dlbl.setObjectName("dur")
+        tr.addSpacing(GAP_L)
+        self.dlbl = QLabel("클립 길이: 0초")
+        self.dlbl.setObjectName("dur")
         tr.addWidget(self.dlbl)
         tr.addStretch()
         v2.addLayout(tr)
         root.addWidget(g2)
 
-        # Save
+        # ── 3. 저장 설정 ──
         g3 = QGroupBox("저장 설정")
-        v3 = QVBoxLayout(g3)
-        v3.setContentsMargins(12, 10, 12, 10)
-        v3.setSpacing(8)
+        grid = QGridLayout(g3)
+        grid.setContentsMargins(PAD, GAP_M, PAD, GAP_M)
+        grid.setHorizontalSpacing(GAP_S)
+        grid.setVerticalSpacing(GAP_S)
 
-        nr = QHBoxLayout(); nr.setSpacing(10)
-        lbl_n = QLabel("파일명:"); lbl_n.setFixedWidth(50)
-        nr.addWidget(lbl_n)
-        self.fname = QLineEdit(); self.fname.setPlaceholderText("비우면 영상 제목으로 자동 생성")
-        nr.addWidget(self.fname, 1)
-        v3.addLayout(nr)
+        grid.addWidget(self._lbl("파일명"), 0, 0, Qt.AlignmentFlag.AlignRight)
+        self.fname = QLineEdit()
+        self.fname.setPlaceholderText("비우면 영상 제목으로 자동 생성")
+        grid.addWidget(self.fname, 0, 1, 1, 2)
 
-        dr = QHBoxLayout(); dr.setSpacing(10)
-        lbl_d = QLabel("경로:"); lbl_d.setFixedWidth(50)
-        dr.addWidget(lbl_d)
+        grid.addWidget(self._lbl("경로"), 1, 0, Qt.AlignmentFlag.AlignRight)
         self.fdir = QLineEdit(os.path.join(get_app_dir(), "clips"))
-        dr.addWidget(self.fdir, 1)
-        bb = QPushButton("폴더 선택"); bb.setProperty("flat", True); bb.setFixedWidth(90)
+        grid.addWidget(self.fdir, 1, 1)
+        bb = QPushButton("폴더 선택")
+        bb.setProperty("flat", True)
+        bb.setFixedWidth(100)
         bb.clicked.connect(self._browse)
-        dr.addWidget(bb)
-        v3.addLayout(dr)
+        grid.addWidget(bb, 1, 2)
 
         self.cb_mute = QCheckBox("소리 제거")
-        v3.addWidget(self.cb_mute)
+        grid.addWidget(self.cb_mute, 2, 1, 1, 2)
+
+        grid.setColumnMinimumWidth(0, LABEL_W)
+        grid.setColumnStretch(1, 1)
         root.addWidget(g3)
 
-        # Progress
+        # ── 4. 진행 상태 ──
         g4 = QGroupBox("진행 상태")
         v4 = QVBoxLayout(g4)
-        v4.setContentsMargins(10, 8, 10, 8)
-        v4.setSpacing(4)
-        self.bar = QProgressBar(); self.bar.setFormat("%p%")
+        v4.setContentsMargins(PAD, GAP_M, PAD, GAP_M)
+        v4.setSpacing(GAP_S)
+        self.bar = QProgressBar()
+        self.bar.setFormat("%p%")
         v4.addWidget(self.bar)
         sr = QHBoxLayout()
-        self.stat = QLabel("대기 중"); self.stat.setStyleSheet("color:#555;")
+        sr.setSpacing(0)
+        self.stat = QLabel("대기 중")
+        self.stat.setStyleSheet("color:#444;")
         sr.addWidget(self.stat, 1)
-        self.tlbl = QLabel(""); self.tlbl.setStyleSheet("color:#555; font-size:11px;")
+        self.tlbl = QLabel("")
+        self.tlbl.setStyleSheet("color:#444; font-size:11px;")
+        self.tlbl.setAlignment(Qt.AlignmentFlag.AlignRight)
         sr.addWidget(self.tlbl)
         v4.addLayout(sr)
         root.addWidget(g4)
 
-        # Buttons + Log
+        # ── 5. 액션 버튼 ──
         br = QHBoxLayout()
-        self.dbtn = QPushButton("다운로드"); self.dbtn.clicked.connect(self._start)
+        br.setSpacing(GAP_S)
+        self.dbtn = QPushButton("다운로드")
+        self.dbtn.setFixedWidth(140)
+        self.dbtn.clicked.connect(self._start)
         br.addWidget(self.dbtn)
-        ob = QPushButton("폴더 열기"); ob.setProperty("flat", True)
+        ob = QPushButton("폴더 열기")
+        ob.setProperty("flat", True)
+        ob.setFixedWidth(100)
         ob.clicked.connect(self._opendir)
         br.addWidget(ob)
         br.addStretch()
         root.addLayout(br)
 
-        self.log = QTextEdit(); self.log.setReadOnly(True); self.log.setFixedHeight(70)
+        # ── 6. 로그 ──
+        self.log = QTextEdit()
+        self.log.setReadOnly(True)
+        self.log.setFixedHeight(72)
         root.addWidget(self.log)
 
-        self.tmr = QTimer(); self.tmr.timeout.connect(self._tick)
+        self.tmr = QTimer()
+        self.tmr.timeout.connect(self._tick)
 
-    # ── helpers ──
+    def _lbl(self, text):
+        l = QLabel(text)
+        l.setFixedWidth(LABEL_W)
+        l.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        return l
+
+    # ── Helpers ──
 
     def _deps(self):
         self.log.append(f"yt-dlp: {'OK' if YTDLP_PATH else 'module'}  |  ffmpeg: {'OK' if FFMPEG_PATH else 'NOT FOUND'}")
@@ -330,7 +391,7 @@ class App(QMainWindow):
         if self._dl:
             self.tlbl.setText(f"경과: {fmt(time.time()-self._t0)}")
 
-    # ── fetch ──
+    # ── Fetch ──
 
     def _fetch(self):
         u = self.url.text().strip()
@@ -379,7 +440,7 @@ class App(QMainWindow):
             self.dlbl.setText(f"클립 길이: {d}초")
         except: pass
 
-    # ── download ──
+    # ── Download ──
 
     def _start(self):
         url, s, e = self.url.text().strip(), self.ts.text().strip(), self.te.text().strip()
@@ -406,7 +467,7 @@ class App(QMainWindow):
 
         self._dl, self._t0 = True, time.time()
         self.dbtn.setEnabled(False); self.bar.setValue(0)
-        self.stat.setText("다운로드 시작..."); self.stat.setStyleSheet("color:#bbb;")
+        self.stat.setText("다운로드 시작..."); self.stat.setStyleSheet("color:#999;")
         self.tmr.start(1000)
         threading.Thread(target=self._dl_w, args=(url,s,e,op,self.cb_mute.isChecked()), daemon=True).start()
 
@@ -481,11 +542,11 @@ class App(QMainWindow):
         else:
             self.stat.setText("실패"); self.stat.setStyleSheet("color:#ea4335;")
             self.log.append(f"오류: {msg}")
-        QTimer.singleShot(3000, lambda: self.stat.setStyleSheet("color:#555;"))
+        QTimer.singleShot(3000, lambda: self.stat.setStyleSheet("color:#444;"))
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    app.setFont(QFont("Segoe UI", 10))
+    app.setFont(build_ui_font())
     w = App(); w.show()
     sys.exit(app.exec())
