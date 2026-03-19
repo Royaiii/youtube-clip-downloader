@@ -22,7 +22,7 @@ YouTube 영상에서 원하는 구간만 잘라서 다운로드하는 GUI 프로
 2. 이 레포를 다운로드하거나 clone
 3. `install_and_run.bat` 더블클릭
 
-> 첫 실행 시 자동으로 필요한 패키지(PyQt6, yt-dlp, ffmpeg)를 설치합니다.
+> 첫 실행 시 자동으로 필요한 패키지(PySide6, yt-dlp, ffmpeg)를 설치합니다.
 
 ## 수동 설치
 
@@ -59,7 +59,7 @@ python main.py
 
 | 패키지 | 용도 |
 |--------|------|
-| [PyQt6](https://pypi.org/project/PyQt6/) | GUI |
+| [PySide6](https://pypi.org/project/PySide6/) | GUI |
 | [yt-dlp](https://github.com/yt-dlp/yt-dlp) | YouTube 다운로드 엔진 |
 | [ffmpeg](https://ffmpeg.org/) | 영상 구간 자르기 |
 

@@ -5,13 +5,13 @@ https://github.com/Royaiii/youtube-clip-downloader
 
 import subprocess, sys, os, re, shutil, threading, time, json, glob
 
-from PyQt6.QtWidgets import (
+from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QFileDialog, QTextEdit,
     QProgressBar, QCheckBox, QFrame, QSizePolicy, QMessageBox,
 )
-from PyQt6.QtCore import Qt, pyqtSignal, QObject, QTimer
-from PyQt6.QtGui import QFont, QColor, QPainter, QBrush, QPen
+from PySide6.QtCore import Qt, Signal, QObject, QTimer
+from PySide6.QtGui import QFont, QColor, QPainter, QBrush, QPen
 
 
 # ─── Utilities ───
@@ -70,17 +70,17 @@ def build_font():
 # ─── Signals ───
 
 class Sig(QObject):
-    log = pyqtSignal(str)
-    prog = pyqtSignal(int)
-    status = pyqtSignal(str)
-    done = pyqtSignal(bool, str)
-    info = pyqtSignal(float, str)
+    log = Signal(str)
+    prog = Signal(int)
+    status = Signal(str)
+    done = Signal(bool, str)
+    info = Signal(float, str)
 
 
 # ─── Range Slider ───
 
 class RangeSlider(QWidget):
-    changed = pyqtSignal(int, int)
+    changed = Signal(int, int)
 
     def __init__(self):
         super().__init__()

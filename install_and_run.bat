@@ -31,7 +31,7 @@ if errorlevel 1 (
 
 :: Install dependencies
 echo [2/4] Installing packages...
-pip install PyQt6 yt-dlp --quiet
+pip install PySide6 yt-dlp --quiet
 
 :: Check ffmpeg
 where ffmpeg >nul 2>&1
