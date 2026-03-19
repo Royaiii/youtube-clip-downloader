@@ -80,7 +80,7 @@ class RangeSlider(QWidget):
         self._lo = self._mn = 0
         self._hi = self._mx = 100
         self._drag = None
-        self.setFixedHeight(56)
+        self.setFixedHeight(30)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.setMouseTracking(True)
 
@@ -110,24 +110,24 @@ class RangeSlider(QWidget):
 
     def paintEvent(self, _):
         p = QPainter(self); p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        m, ty, th = 16, 20, 6; w = self.width() - 2*m
+        m = 16; cy = self.height() // 2; th = 6
+        w = self.width() - 2*m
         p.setPen(Qt.PenStyle.NoPen)
         p.setBrush(QBrush(QColor(45, 45, 45)))
-        p.drawRoundedRect(m, ty, w, th, 3, 3)
+        p.drawRoundedRect(m, cy - th//2, w, th, 3, 3)
         xl, xh = self._v2x(self._lo), self._v2x(self._hi)
         p.setBrush(QBrush(QColor(66, 133, 244)))
-        p.drawRoundedRect(xl, ty, max(1, xh-xl), th, 3, 3)
+        p.drawRoundedRect(xl, cy - th//2, max(1, xh-xl), th, 3, 3)
         for x, c in [(xl, QColor(66,133,244)), (xh, QColor(234,67,53))]:
             p.setBrush(QBrush(c)); p.setPen(QPen(QColor(255,255,255), 2))
-            p.drawEllipse(x-7, ty-4, 14, 14)
-        p.setPen(QPen(QColor(160,160,160))); p.setFont(QFont("Segoe UI", 8))
-        p.drawText(xl-22, 46, fmt(self._lo))
-        p.drawText(xh-22, 46, fmt(self._hi))
+            p.drawEllipse(x-7, cy-7, 14, 14)
         p.end()
 
     def mousePressEvent(self, e):
         x = e.position().x()
-        self._drag = "lo" if abs(x-self._v2x(self._lo)) <= abs(x-self._v2x(self._hi)) else "hi"
+        dl = abs(x - self._v2x(self._lo))
+        dh = abs(x - self._v2x(self._hi))
+        self._drag = "lo" if dl <= dh else "hi"
         self._move(x)
 
     def mouseMoveEvent(self, e):
